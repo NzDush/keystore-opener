@@ -5,13 +5,14 @@ import util.KeystoreUtil.{getAliases, getCertificate, getFingerprintSHA1, getKey
 
 import java.io.{File, PrintWriter}
 import java.text.SimpleDateFormat
+import java.util.TimeZone
 
 object Main {
 
   def config(): Config = ConfigFactory.load()
 
   def printLineSeparator(printWriter: PrintWriter, count: Int): Unit = {
-    val separatorString = "=" * 200
+    val separatorString = "=" * 202
     for (i <- 0 until count) {
       println(separatorString)
       printWriter.println(separatorString)
@@ -23,6 +24,7 @@ object Main {
     val keystorePath = config().getString("app.keystore.path")
     val keystorePassword = config().getString("app.keystore.password")
     val outputFilePath = config().getString("app.outputFilePath")
+    val timeZone = config().getString("app.timeZone")
 
     val keystore = getKeyStoreInstance(new File(keystorePath), keystorePassword)
     val aliases = getAliases(keystore)
@@ -46,7 +48,9 @@ object Main {
       val serialNumberInDecimal = cert.getSerialNumber
       val serialNumberInHex = serialNumberInDecimal.toString(16)
       val fingerprint = getFingerprintSHA1(cert).toUpperCase
-      val expireDate = (new SimpleDateFormat("yyyy-mm-dd")).format(cert.getNotAfter)
+      val simpleDateFormat = (new SimpleDateFormat("yyyy-MM-dd HH:mm Z"))
+      simpleDateFormat.setTimeZone(TimeZone.getTimeZone(timeZone))
+      val expireDate = simpleDateFormat.format(cert.getNotAfter)
       printf(tablePattern, (i + 1), serialNumberInHex.toUpperCase, serialNumberInDecimal.toString, alias, fingerprint, expireDate)
       printWriter.printf(tablePattern, (i + 1).toString, serialNumberInHex.toUpperCase, serialNumberInDecimal.toString, alias, fingerprint, expireDate)
     }
