@@ -54,4 +54,9 @@ public class KeystoreUtil {
         return DigestUtils.sha1Hex(encodedCert);
     }
 
+    public static String getFingerprintSHA256(X509Certificate inputCertificate) throws CertificateEncodingException {
+        byte[] encodedCert = inputCertificate.getEncoded();
+        return DigestUtils.sha256Hex(encodedCert);
+    }
+
 }

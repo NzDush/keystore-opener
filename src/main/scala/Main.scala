@@ -1,7 +1,7 @@
 package main
 
 import com.typesafe.config.{Config, ConfigFactory}
-import util.KeystoreUtil.{getAliases, getCertificate, getFingerprintSHA1, getKeyStoreInstance}
+import util.KeystoreUtil.{getAliases, getCertificate, getFingerprintSHA1, getFingerprintSHA256, getKeyStoreInstance}
 
 import java.io.{File, PrintWriter}
 import java.text.SimpleDateFormat
@@ -12,7 +12,7 @@ object Main {
   def config(): Config = ConfigFactory.load()
 
   def printLineSeparator(printWriter: PrintWriter, count: Int): Unit = {
-    val separatorString = "=" * 202
+    val separatorString = "=" * 275
     for (i <- 0 until count) {
       println(separatorString)
       printWriter.println(separatorString)
@@ -37,9 +37,9 @@ object Main {
     printWriter.println(s"Total certificate count: ${aliases.size()}")
     printLineSeparator(printWriter, 2)
 
-    val tablePattern = "%-6s%-43s%-51s%-37s%-43s%-22s\n"
-    printf(tablePattern, "No.", "Serial Number (Hex)", "Serial Number (Decimal)", "Alias", "Fingerprint (SHA1)", "Valid until")
-    printWriter.printf(tablePattern, "No.", "Serial Number (Hex)", "Serial Number (Decimal)", "Alias", "Fingerprint (SHA1)", "Valid until")
+    val tablePattern = "%-6s%-43s%-51s%-43s%-43s%-67s%-22s\n"
+    printf(tablePattern, "No.", "Serial Number (Hex)", "Serial Number (Decimal)", "Alias", "Fingerprint (SHA1)", "Fingerprint (SHA256)", "Valid until")
+    printWriter.printf(tablePattern, "No.", "Serial Number (Hex)", "Serial Number (Decimal)", "Alias", "Fingerprint (SHA1)", "Fingerprint (SHA256)", "Valid until")
     printLineSeparator(printWriter, 1)
 
     for (i <- 0 until aliases.size()) {
@@ -47,12 +47,13 @@ object Main {
       val cert = getCertificate(keystore, alias)
       val serialNumberInDecimal = cert.getSerialNumber
       val serialNumberInHex = serialNumberInDecimal.toString(16)
-      val fingerprint = getFingerprintSHA1(cert).toUpperCase
+      val fingerprintSHA1 = getFingerprintSHA1(cert).toUpperCase
+      val fingerprintSHA256 = getFingerprintSHA256(cert).toUpperCase
       val simpleDateFormat = (new SimpleDateFormat("yyyy-MM-dd HH:mm Z"))
       simpleDateFormat.setTimeZone(TimeZone.getTimeZone(timeZone))
       val expireDate = simpleDateFormat.format(cert.getNotAfter)
-      printf(tablePattern, (i + 1), serialNumberInHex.toUpperCase, serialNumberInDecimal.toString, alias, fingerprint, expireDate)
-      printWriter.printf(tablePattern, (i + 1).toString, serialNumberInHex.toUpperCase, serialNumberInDecimal.toString, alias, fingerprint, expireDate)
+      printf(tablePattern, (i + 1), serialNumberInHex.toUpperCase, serialNumberInDecimal.toString, alias, fingerprintSHA1, fingerprintSHA256, expireDate)
+      printWriter.printf(tablePattern, (i + 1).toString, serialNumberInHex.toUpperCase, serialNumberInDecimal.toString, alias, fingerprintSHA1, fingerprintSHA256, expireDate)
     }
     printLineSeparator(printWriter, 1)
     printWriter.close()
